@@ -27,6 +27,7 @@ invokeTask.getHandler = function (grunt) {
             'file_name': 'index.js',
             'event': 'event.json',
             'client_context': 'client_context.json',
+            'context': 'context.json',
             'identity': 'identity.json'
         });
 
@@ -39,6 +40,17 @@ invokeTask.getHandler = function (grunt) {
         //since clientContext should be optional, skip if doesn't exist
         try {
             clientContext = JSON.parse(fs.readFileSync(path.resolve(options.client_context), "utf8"));
+        } catch (e) {
+            if (e.code !== 'ENOENT') {
+                throw e;
+            }
+        }
+
+        var overrideContext = {};
+
+        //since overrideContext should be optional, skip if doesn't exist
+        try {
+            overrideContext = JSON.parse(fs.readFileSync(path.resolve(options.context), "utf8"));
         } catch (e) {
             if (e.code !== 'ENOENT') {
                 throw e;
@@ -96,6 +108,10 @@ invokeTask.getHandler = function (grunt) {
             clientContext: clientContext,
             identity: identity
         };
+
+        for (let field in overrideContext) {
+            context[field] = overrideContext[field]
+        }
 
         var callback = function(error, object) {
             context.done(error, object);
